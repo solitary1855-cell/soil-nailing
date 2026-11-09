@@ -230,6 +230,15 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
 
 .backlink{font-size:12.5px;color:var(--accent);text-decoration:none;white-space:nowrap}
 .backlink:hover{text-decoration:underline}
+.pair34{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+@media (max-width:1100px){.pair34{grid-template-columns:minmax(0,1fr)}}
+.pair34 .nails input{width:54px}
+.pair34 .nails select{width:70px;padding-inline:4px}
+.pair34 .nails td{padding:3px 2px}
+.pair34 .nails button.ghost{padding:4px 2px}
+.legend span>sub{margin-left:-6px}
+.pair34 .nails th{white-space:normal;min-width:56px}
+.pair34 .legend{gap:4px 12px}
 .hd-right{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;justify-content:flex-end}
 </style>
 </head>
@@ -339,6 +348,7 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
     </section>
   </div>
 
+  <div class="two pair34">
   <section class="panel" aria-labelledby="h-nails">
     <div class="panel-head"><h2 id="h-nails"><span class="n">03</span>土釘配置</h2>
       <div class="btns"><button type="button" id="btn-addnail">＋ 新增一排</button></div>
@@ -360,6 +370,7 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
       <span><i style="border-color:var(--accent);border-top-style:dashed"></i>地下水位</span>
     </div>
   </section>
+  </div>
 
   <section class="panel" aria-labelledby="h-ten">
     <div class="panel-head"><h2 id="h-ten"><span class="n">05</span>需求拉力與鋼筋抗拉</h2></div>
