@@ -326,13 +326,9 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
         <fieldset>
           <legend>鋼筋與土壓</legend>
           <div class="f"><label for="fy">土釘鋼筋 f<sub>y</sub></label><div class="inp"><input id="fy" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
+          <div class="f"><label for="taR">容許拉力 T<sub>a</sub> = ? × f<sub>y</sub>·A<sub>s</sub><small>原 Excel 取 0.55</small></label><div class="inp"><input id="taR" inputmode="decimal"></div></div>
           <label class="switch"><input type="checkbox" id="excelTrib"> 土壓分配採原 Excel 點值法</label>
           <p class="hint">點值法：各排土壓取土釘深度處之 σ<sub>h</sub> 乘負擔高度。預設為面積積分，各排加總等於 Rankine 總土壓。</p>
-        </fieldset>
-        <fieldset>
-          <legend>規範與安全係數</legend>
-          <div class="f w"><label for="code">安全係數依據</label><div class="inp sel-only"><select id="code"><option value="bldg">建築物基礎構造設計規範（112）</option><option value="swc">水土保持技術規範</option><option value="gec7">FHWA GEC 7（2015）</option><option value="custom">自訂</option></select></div></div>
-          <div class="fsgrid" id="fsgrid"></div>
         </fieldset>
       </div>
     </section>
@@ -340,7 +336,7 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
     <section class="panel verdict" aria-labelledby="h-sum">
       <div class="panel-head"><h2 id="h-sum"><span class="n">02</span>檢核結果</h2></div>
       <div class="bigpair">
-        <div class="bigbox first" id="bb1"><div class="big-l">拉拔阻抗 FS（最小）</div><div class="big"><span class="v" id="big-fs">—</span><span class="u" id="big-req"></span></div></div>
+        <div class="bigbox first" id="bb1"><div class="big-l">拉拔 SF = R<sub>po</sub>/T（最小）</div><div class="big"><span class="v" id="big-fs">—</span><span class="u" id="big-req"></span></div></div>
         <div class="bigbox second" id="bb2"><div class="big-l">土釘排數</div><div class="big sm"><span class="v" id="big-ok">—</span><span class="u">排 OK</span></div></div>
       </div>
       <ul class="checks" id="checks"></ul>
@@ -391,12 +387,12 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
       <p>Rankine 主動土壓 σ<sub>h</sub> = K<sub>a</sub>·cosβ·(q + σ'<sub>v</sub>) + u。各排負擔高度取上下兩排之中點，土壓合力 P 乘水平間距 S<sub>H</sub> 為水平拉力 T<sub>h</sub>，再除以 cosψ 換算為沿土釘軸力 T。有暴雨水位時取兩者之大值。</p>
     </div>
     <div><h3>鋼筋抗拉與拉拔</h3>
-      <p>R<sub>t</sub> = A<sub>s</sub>·f<sub>y</sub>，FS<sub>t</sub> = R<sub>t</sub>/T。原 Excel 容許拉力 0.55 f<sub>y</sub> 相當於 FS<sub>t</sub> = 1.82。</p>
-      <p>有效錨定長度 L<sub>p</sub> 取 Rankine 破壞面（45° + φ'/2，通過牆趾）以外之土釘長度。鑽孔灌漿式 R<sub>po</sub> = π·D<sub>DH</sub>·q<sub>u</sub>·L<sub>p</sub>；打入式 R<sub>po</sub> = π·d<sub>b</sub>·σ'<sub>v</sub>·tanδ·L<sub>p</sub>（σ'<sub>v</sub> 取 L<sub>p</sub> 中點，不計超載）。</p>
+      <p>依原 Excel：容許拉力 T<sub>a</sub> = 0.55·f<sub>y</sub>·A<sub>s</sub>（比值可改），以水平分量 T<sub>a</sub>·cosψ 與水平需求拉力 T<sub>h</sub> 比較。</p>
+      <p>有效錨定長度 L<sub>p</sub> 取 Rankine 破壞面（45° + φ'/2，通過牆趾）以外之土釘長度。鑽孔灌漿式 R<sub>po</sub> = π·D<sub>DH</sub>·q<sub>u</sub>·L<sub>p</sub>；打入式 R<sub>po</sub> = π·d<sub>b</sub>·σ'<sub>v</sub>·tanδ·L<sub>p</sub>（σ'<sub>v</sub> 取 L<sub>p</sub> 中點，不計超載）。拉拔 SF = R<sub>po</sub>/T ≥ 1.0 為 OK。</p>
     </div>
     <div><h3>適用範圍</h3>
       <p>本頁只檢核完工階段的鋼筋抗拉與拉拔阻抗。面版、加勁體滑動、整體穩定與施工階段，請使用<a class="backlink" href="../">完整版</a>。</p>
-      <p>單一均質土層、水平地下水位、無地震力。供初步設計與自我檢核使用，q<sub>u</sub> 應以現場拉拔試驗驗證。</p>
+      <p>單一均質土層、水平地下水位、無地震力。本頁不套用規範安全係數，判定方式依原 Excel。供初步設計與自我檢核使用，q<sub>u</sub> 應以現場拉拔試驗驗證。</p>
     </div>
   </footer>
 </div>

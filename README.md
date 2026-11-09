@@ -26,7 +26,12 @@
 
 ## 精簡版：抗拉與拉拔檢核（`basic/`）
 
-只檢核完工階段的鋼筋抗拉與拉拔阻抗，做法依原 Excel：Rankine 土壓分配 → 需求拉力 → 鋼筋抗拉 → 破壞面外有效錨定長度 → 拉拔。單位切換、案件儲存、Word 計算書等功能與完整版相同，案件分開儲存。網址為 `https://<帳號>.github.io/soil-nailing/basic/`。
+只檢核完工階段的鋼筋抗拉與拉拔阻抗，做法依原 Excel，不套用規範安全係數：
+
+- 鋼筋抗拉：容許拉力 T<sub>a</sub> = 0.55·f<sub>y</sub>·A<sub>s</sub>（比值可改），T<sub>a</sub>·cosψ ≥ T<sub>h</sub>（T requirement）為 OK
+- 拉拔：SF = R<sub>po</sub> / T ≥ 1.0 為 OK
+
+單位切換、案件儲存、Word 計算書等功能與完整版相同，案件分開儲存。網址為 `https://<帳號>.github.io/soil-nailing/basic/`。
 
 ## 安全係數
 
