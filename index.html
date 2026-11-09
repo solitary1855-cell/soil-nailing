@@ -286,8 +286,8 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
         </fieldset>
         <fieldset>
           <legend>土壤參數</legend>
-          <div class="f"><label for="gt">單位重 γt<small>水位以上</small></label><div class="inp"><input id="gt" data-k="gt" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
-          <div class="f"><label for="gs">飽和單位重 γsat<small>水位以下</small></label><div class="inp"><input id="gs" data-k="gs" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <div class="f"><label for="gt">單位重 γ<sub>t</sub><small>水位以上</small></label><div class="inp"><input id="gt" data-k="gt" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <div class="f"><label for="gs">飽和單位重 γ<sub>sat</sub><small>水位以下</small></label><div class="inp"><input id="gs" data-k="gs" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
           <div class="f"><label for="phi">有效摩擦角 φ'</label><div class="inp"><input id="phi" data-k="phi" inputmode="decimal"><span class="u">°</span></div></div>
           <div class="f"><label for="c">有效凝聚力 c'</label><div class="inp"><input id="c" data-k="c" inputmode="decimal"><span class="u" data-u="P"></span></div></div>
         </fieldset>
@@ -295,7 +295,7 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
           <legend>地下水</legend>
           <div class="f"><label for="gwN">常時水位深度<small>牆頂地表下，空白＝不考慮</small></label><div class="inp"><input id="gwN" data-k="gwN" inputmode="decimal" placeholder="無"><span class="u">m</span></div></div>
           <div class="f"><label for="gwS">暴雨（高水位）深度<small>空白＝不檢核暴雨工況</small></label><div class="inp"><input id="gwS" data-k="gwS" inputmode="decimal" placeholder="無"><span class="u">m</span></div></div>
-          <div class="f"><label for="gw">水單位重 γw</label><div class="inp"><input id="gw" data-k="gw" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <div class="f"><label for="gw">水單位重 γ<sub>w</sub></label><div class="inp"><input id="gw" data-k="gw" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
           <label class="switch"><input type="checkbox" id="drained"> 面版排水良好，土釘需求拉力不計水壓</label>
         </fieldset>
         <fieldset>
@@ -305,13 +305,13 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
           <div class="f" data-m="grout"><label for="qu">極限握裹強度 q<sub>u</sub><small>應以拉拔試驗驗證</small></label><div class="inp"><input id="qu" data-k="qu" inputmode="decimal"><span class="u" data-u="P"></span></div></div>
           <div data-m="grout"><select id="bondpick" class="bond-pick" aria-label="GEC 7 握裹強度參考值"></select></div>
           <div class="f" data-m="driven"><label for="kdelta">介面摩擦折減 k<small>tan δ = tan(k·φ')，原 Excel 取 2/3</small></label><div class="inp"><input id="kdelta" data-k="kdelta" inputmode="decimal"></div></div>
-          <p class="hint" data-m="driven">打入式以鋼筋周長 × σ'v × tan δ 計算每公尺拉拔阻抗（原 Excel 方法，周長單位已更正）。</p>
+          <p class="hint" data-m="driven">打入式以鋼筋周長 × σ'<sub>v</sub> × tan δ 計算每公尺拉拔阻抗（原 Excel 方法，周長單位已更正）。</p>
         </fieldset>
         <fieldset>
           <legend>鋼筋與面版</legend>
           <div class="f"><label for="fy">土釘鋼筋 f<sub>y</sub></label><div class="inp"><input id="fy" data-k="fy" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
           <div class="f"><label for="fh">噴凝土面版厚 h</label><div class="inp"><input id="fh" data-k="fh" inputmode="decimal"><span class="u">cm</span></div></div>
-          <div class="f"><label for="fc">面版 f'c</label><div class="inp"><input id="fc" data-k="fc" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
+          <div class="f"><label for="fc">面版 f'<sub>c</sub></label><div class="inp"><input id="fc" data-k="fc" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
           <div class="f"><label for="fym">鋼線網 f<sub>y</sub></label><div class="inp"><input id="fym" data-k="fym" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
           <div class="f"><label for="asv">鋼線網 a<sub>s</sub> 垂直向</label><div class="inp"><input id="asv" data-k="asv" inputmode="decimal"><span class="u wide">cm²/m</span></div></div>
           <div class="f"><label for="ash">鋼線網 a<sub>s</sub> 水平向</label><div class="inp"><input id="ash" data-k="ash" inputmode="decimal"><span class="u wide">cm²/m</span></div></div>
@@ -398,9 +398,9 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
 
   <footer class="notes">
     <div><h3>計算方法</h3>
-      <p>需求拉力：Rankine 主動土壓 σh = Ka·cosβ·(q + σ'v) + u，依各排垂直負擔高度積分，乘水平間距後換算為沿土釘軸力。常時與暴雨水位取大者。</p>
-      <p>拉拔：有效錨定長度取 Rankine 破壞面（45° + φ'/2，通過牆趾）以外之土釘長度。鑽孔灌漿式 R = π·D<sub>DH</sub>·q<sub>u</sub>·L<sub>p</sub>；打入式 R = π·d<sub>b</sub>·σ'v·tan δ·L<sub>p</sub>。</p>
-      <p>面版：T<sub>o</sub> = T·[0.6 + 0.2(S<sub>max</sub> − 1)]；撓曲 R<sub>FF</sub> = C<sub>F</sub>(m<sub>neg</sub> + m<sub>pos</sub>)(8S<sub>H</sub>/S<sub>V</sub>)；穿孔剪力 V<sub>F</sub> = 0.33√f'c·π·D'c·h（GEC 7）。</p>
+      <p>需求拉力：Rankine 主動土壓 σ<sub>h</sub> = K<sub>a</sub>·cosβ·(q + σ'<sub>v</sub>) + u，依各排垂直負擔高度積分，乘水平間距後換算為沿土釘軸力。常時與暴雨水位取大者。</p>
+      <p>拉拔：有效錨定長度取 Rankine 破壞面（45° + φ'/2，通過牆趾）以外之土釘長度。鑽孔灌漿式 R = π·D<sub>DH</sub>·q<sub>u</sub>·L<sub>p</sub>；打入式 R = π·d<sub>b</sub>·σ'<sub>v</sub>·tan δ·L<sub>p</sub>。</p>
+      <p>面版：T<sub>o</sub> = T·[0.6 + 0.2(S<sub>max</sub> − 1)]；撓曲 R<sub>FF</sub> = C<sub>F</sub>(m<sub>neg</sub> + m<sub>pos</sub>)(8S<sub>H</sub>/S<sub>V</sub>)；穿孔剪力 V<sub>F</sub> = 0.33√f'<sub>c</sub>·π·D'<sub>c</sub>·h（GEC 7）。</p>
     </div>
     <div><h3>整體穩定</h3>
       <p>圓弧滑動面，40 片切片。簡化 Bishop 滿足力矩平衡；Spencer（f(x) = 1）與 Morgenstern-Price（f(x) = 半正弦）同時滿足力矩與力平衡，以 λ 求解。</p>

@@ -287,9 +287,12 @@ function renderSummary(){
 }
 function methodName(m){return {bishop:"簡化 Bishop",spencer:"Spencer",mp:"Morgenstern-Price"}[m]||m;}
 
+/* 計算過程：X_{ab}／X_ab → 下標 */
+var SUBRE=/(?<=[A-Za-z0-9'σφγδτΔ)])_\{([^}]*)\}|(?<=[A-Za-z0-9'σφγδτΔ)])_([A-Za-z0-9',]+)/g;
+function subH(h){return h.replace(SUBRE,function(m,a,b){return "<sub>"+(a!==undefined?a:b)+"</sub>";});}
 function renderInternal(){
   var I=LAST.I, FS=LAST.FS, s=LAST.s, u=U(), drv=s.method==="driven";
-  $("ka-note").textContent="Ka = "+fmt(I.Ka,4)+"　破壞面 "+fmt(I.theta,1)+"°";
+  $("ka-note").innerHTML="K<sub>a</sub> = "+fmt(I.Ka,4)+"　破壞面 "+fmt(I.theta,1)+"°";
   var h='<thead><tr><th>#</th><th>z<br>m</th><th>S<sub>V</sub><br>m</th><th>S<sub>H</sub><br>m</th><th>水位<br>工況</th><th>土壓合力<br>'+u.FL+'</th><th>T 軸力<br>'+u.F+'</th><th>R<sub>t</sub><br>'+u.F+'</th><th>FS<sub>t</sub><br>≥'+fmt(FS.tensile,2)+'</th><th>L<sub>a</sub><br>m</th><th>L<sub>p</sub><br>m</th>'+(drv?'<th>σ\'v<br>'+u.P+'</th>':'')+'<th>拉拔率<br>'+u.FL+'</th><th>R<sub>po</sub><br>'+u.F+'</th><th>FS<sub>po</sub><br>≥'+fmt(FS.pullout,2)+'</th><th>判定</th></tr></thead><tbody>';
   I.rows.forEach(function(r){
     var ok=r.FSt>=FS.tensile&&r.FSpo>=FS.pullout;
@@ -303,16 +306,16 @@ function renderInternal(){
     var g=SN.nailGeom(s,r.n);
     dd+='<div class="eqs"><b>第 '+r.i+' 排（z = '+fmt(r.n.z,2)+' m，'+r.n.bar+'，'+(r.wcase==="S"?"暴雨":"常時")+'水位控制）</b>\n'+
       '負擔範圍 '+fmt(r.top,2)+'～'+fmt(r.bot,2)+' m，S_V = '+fmt(r.sv,2)+' m\n'+
-      'σh(頂) = '+fP(r.ptop)+'，σh(z) = '+fP(r.pz)+'，σh(底) = '+fP(r.pbot)+' '+u.P+'\n'+
-      (s.excelTrib?'P = σh(z) × S_V = '+fP(r.pz)+' × '+fmt(r.sv,2):'P = ∫σh dz（Simpson）')+' = '+fFL(r.P)+' '+u.FL+'\n'+
+      'σ_h(頂) = '+fP(r.ptop)+'，σ_h(z) = '+fP(r.pz)+'，σ_h(底) = '+fP(r.pbot)+' '+u.P+'\n'+
+      (s.excelTrib?'P = σ_h(z) × S_V = '+fP(r.pz)+' × '+fmt(r.sv,2):'P = ∫σ_h dz（Simpson）')+' = '+fFL(r.P)+' '+u.FL+'\n'+
       'T_h = P × S_H = '+fFL(r.P)+' × '+fmt(r.n.sh,2)+' = '+fF(r.Th)+' '+u.F+'；T = T_h / cos'+fmt(r.n.ang,0)+'° = '+fF(r.T)+' '+u.F+'\n'+
       'R_t = '+fmt(r.bar.As,2)+' cm² × '+fS(s.fy)+' '+u.S+' = '+fF(r.Rt)+' '+u.F+'；FS_t = '+fmt(r.FSt,2)+'\n'+
       '釘頭 ('+fmt(g.xh,2)+', '+fmt(g.yh,2)+')；破壞面交點 L_a = '+fmt(r.La,2)+' m，L_p = '+fmt(r.n.L,2)+' − '+fmt(r.La,2)+' = '+fmt(r.Lp,2)+' m\n'+
-      (drv?'σ\'v(L_p 中點，深 '+fmt(r.zmid,2)+' m) = '+fP(r.sigmid)+' '+u.P+'；拉拔率 = π × '+fmt(r.bar.d,1)+'/1000 × '+fP(r.sigmid)+' × tan('+fmt(s.kdelta,3)+'×'+fmt(s.phi,1)+'°) = '+fFL(r.rate)+' '+u.FL+'\n'
+      (drv?'σ\'_v(L_p 中點，深 '+fmt(r.zmid,2)+' m) = '+fP(r.sigmid)+' '+u.P+'；拉拔率 = π × '+fmt(r.bar.d,1)+'/1000 × '+fP(r.sigmid)+' × tan('+fmt(s.kdelta,3)+'×'+fmt(s.phi,1)+'°) = '+fFL(r.rate)+' '+u.FL+'\n'
          :'拉拔率 = π × '+fmt(s.Ddh/1000,3)+' × '+fP(s.qu)+' = '+fFL(r.rate)+' '+u.FL+'\n')+
       'R_po = '+fFL(r.rate)+' × '+fmt(r.Lp,2)+' = '+fF(r.Rpo)+' '+u.F+'；FS_po = '+fmt(r.FSpo,2)+'</div>';
   });
-  $("intdet").innerHTML=dd;
+  $("intdet").innerHTML=subH(dd);
 }
 function renderFacing(){
   var I=LAST.I, FS=LAST.FS, s=LAST.s, u=U(), f0=I.rows[0].fc;
@@ -321,13 +324,13 @@ function renderFacing(){
     h+='<tr class="'+(ok?"":"ng")+'"><td>'+r.i+'</td><td>'+fmt(r.Smax,2)+'</td><td>'+fF(r.To)+'</td><td>'+fF(r.fc.RFF)+'</td><td>'+fmt(r.FSff,2)+'</td><td>'+fF(r.fc.RFP)+'</td><td>'+fmt(r.FSfp,2)+'</td><td>'+(ok?'<span class="ok">OK</span>':'<span class="ng">NG</span>')+'</td></tr>';});
   $("tface").innerHTML=h+'</tbody>';
   var r=I.rows.reduce(function(a,b){return b.FSff<a.FSff?b:a;});
-  $("facedet").innerHTML='<div class="eqs"><b>面版斷面（鋼線網置中，d = h/2）</b>\n'+
-    'h = '+fmt(s.fh,1)+' cm，f\'c = '+fS(s.fc)+' '+u.S+'，f_y = '+fS(s.fym)+' '+u.S+'，C_F = '+fmt(f0.CF,2)+(s.CF?'':'（依厚度自動）')+'\n'+
+  $("facedet").innerHTML=subH('<div class="eqs"><b>面版斷面（鋼線網置中，d = h/2）</b>\n'+
+    'h = '+fmt(s.fh,1)+' cm，f\'_c = '+fS(s.fc)+' '+u.S+'，f_y = '+fS(s.fym)+' '+u.S+'，C_F = '+fmt(f0.CF,2)+(s.CF?'':'（依厚度自動）')+'\n'+
     'm_v = a_s·f_y·(d − a/2) = '+fM(f0.mv,2)+' '+u.M+'；m_h = '+fM(f0.mh,2)+' '+u.M+'\n'+
-    'D\'c = L_BP + h = '+fmt(f0.Dc,3)+' m；V_F = 0.33√f\'c·π·D\'c·h = '+fF(f0.VF)+' '+u.F+'（C_P = 1.0）\n\n'+
+    'D\'_c = L_{BP} + h = '+fmt(f0.Dc,3)+' m；V_F = 0.33√f\'_c·π·D\'_c·h = '+fF(f0.VF)+' '+u.F+'（C_P = 1.0）\n\n'+
     '<b>撓曲最不利：第 '+r.i+' 排</b>\nS_max = max(S_H, S_V) = '+fmt(r.Smax,2)+' m；T_o = T × [0.6 + 0.2(S_max − 1)] = '+fF(r.T)+' × '+fmt(r.kTo,3)+' = '+fF(r.To)+' '+u.F+'\n'+
     'R_FF,v = C_F·(2m_v)·(8S_H/S_V) = '+fF(r.fc.RFFv)+'；R_FF,h = C_F·(2m_h)·(8S_V/S_H) = '+fF(r.fc.RFFh)+' → R_FF = '+fF(r.fc.RFF)+' '+u.F+'\n'+
-    'FS_FF = '+fmt(r.FSff,2)+'；FS_FP = '+fF(r.fc.RFP)+' / '+fF(r.To)+' = '+fmt(r.FSfp,2)+'</div>';
+    'FS_FF = '+fmt(r.FSff,2)+'；FS_FP = '+fF(r.fc.RFP)+' / '+fF(r.To)+' = '+fmt(r.FSfp,2)+'</div>');
 }
 function renderSliding(){
   var SL=LAST.SL, FS=LAST.FS, u=U();
@@ -335,10 +338,10 @@ function renderSliding(){
   SL.forEach(function(o){h+='<tr class="'+(o.FS>=o.req?"":"ng")+'"><td class="l t">'+(o.key==="S"?"暴雨":"常時")+'</td><td>'+fFL(o.W,1)+'</td><td>'+fFL(o.QD,1)+'</td><td>'+fFL(o.U,1)+'</td><td>'+fFL(o.PA,1)+'</td><td>'+fFL(o.Pw,1)+'</td><td>'+fmt(o.FS,2)+'</td><td>'+okTag(o.FS,o.req)+'</td></tr>';});
   $("tslide").innerHTML=h+'</tbody>';
   var o=SL[0], s=LAST.s;
-  $("slidedet").innerHTML='<div class="eqs">加勁體：牆趾至最下排土釘尾端，底寬 B_L = '+fmt(o.xb,2)+' m，後緣高 H_1 = '+fmt(o.H1,2)+' m\n'+
+  $("slidedet").innerHTML=subH('<div class="eqs">加勁體：牆趾至最下排土釘尾端，底寬 B_L = '+fmt(o.xb,2)+' m，後緣高 H_1 = '+fmt(o.H1,2)+' m\n'+
     'FS = [c\'·B_L + (W + Q_D + P_A·sinβ − U)·tanφ\'] / (P_A·cosβ + P_w)\n'+
     '常時：['+fP(s.c)+' × '+fmt(o.xb,2)+' + ('+fFL(o.W,1)+' + '+fFL(o.QD,1)+' − '+fFL(o.U,1)+') × tan'+fmt(s.phi,1)+'°] / ('+fFL(o.PA,1)+' + '+fFL(o.Pw,1)+') = '+fmt(o.FS,2)+'\n'+
-    'P_A 以 Rankine Ka = '+fmt(o.Ka,4)+' 計算，含超載 '+fFL(o.PAq,1)+' '+u.FL+'。基底摩擦角取土壤 φ\'。</div>';
+    'P_A 以 Rankine K_a = '+fmt(o.Ka,4)+' 計算，含超載 '+fFL(o.PAq,1)+' '+u.FL+'。基底摩擦角取土壤 φ\'。</div>');
 }
 
 function renderGlobal(){
@@ -517,7 +520,7 @@ function buildDocx(imgs){
   H2("1.2 土釘與面版");
   var mrows=[["項目","數值","單位"],["土釘型式",s.method==="driven"?"打入式":"鑽孔灌漿式","—"]];
   if(s.method==="driven")mrows.push(["介面摩擦 tan δ = tan(k·φ')，k",fmt(s.kdelta,3),"—"]); else {mrows.push(["鑽孔直徑 D_{DH}",fmt(s.Ddh,0),"mm"]); mrows.push(["極限握裹強度 q_u",fP(s.qu),u.P]);}
-  mrows.push(["土釘鋼筋 f_y",fS(s.fy),u.S],["噴凝土面版厚 h",fmt(s.fh,1),"cm"],["面版 f'c",fS(s.fc),u.S],["鋼線網 f_y",fS(s.fym),u.S],["鋼線網 a_s（垂直／水平）",fmt(s.asv,2)+" / "+fmt(s.ash,2),"cm²/m"],["承壓鈑邊長 L_{BP}",fmt(s.lbp,1),"cm"],["壓力係數 C_F",fmt(I.rows[0].fc.CF,2)+(s.CF?"":"（依厚度）"),"—"]);
+  mrows.push(["土釘鋼筋 f_y",fS(s.fy),u.S],["噴凝土面版厚 h",fmt(s.fh,1),"cm"],["面版 f'_c",fS(s.fc),u.S],["鋼線網 f_y",fS(s.fym),u.S],["鋼線網 a_s（垂直／水平）",fmt(s.asv,2)+" / "+fmt(s.ash,2),"cm²/m"],["承壓鈑邊長 L_{BP}",fmt(s.lbp,1),"cm"],["壓力係數 C_F",fmt(I.rows[0].fc.CF,2)+(s.CF?"":"（依厚度）"),"—"]);
   body.push(table([4200,2600,2838],mrows,{align:["left","center","center"],sz:20}));
   var nr=[["排","深度 z m","S_H m","S_V m","長度 L m","傾角 ψ °","鋼筋","A_s cm²"]];
   I.rows.forEach(function(r){nr.push([r.i,fmt(r.n.z,2),fmt(r.n.sh,2),fmt(r.sv,2),fmt(r.n.L,2),fmt(r.n.ang,1),r.n.bar,fmt(r.bar.As,2)]);});
@@ -530,7 +533,7 @@ function buildDocx(imgs){
   ["需求拉力：Rankine 主動土壓 σ_h = K_a·cosβ·(q + σ'_v) + u"+(s.drained?"（面版排水，不計 u）":"")+"，K_a = "+fmt(I.Ka,4)+"。各排垂直負擔高度 S_V 取上下兩排之中點，第一排由牆頂起算、最後一排算至牆底；"+(s.excelTrib?"土壓合力取土釘深度處之 σ_h 乘 S_V（原 Excel 點值法）。":"土壓合力 P = ∫σ_h dz（面積積分）。")+"T_h = P·S_H，沿土釘軸力 T = T_h / cosψ。有暴雨水位時取常時與暴雨之大者。",
    "鋼筋抗拉：R_t = A_s·f_y，FS_t = R_t / T。",
    "拉拔：Rankine 破壞面通過牆趾，與水平夾 45° + φ'/2 = "+fmt(I.theta,1)+"°；有效錨定長度 L_p 為破壞面以外之土釘長度（沿土釘量測）。"+(s.method==="driven"?"打入式每公尺拉拔阻抗 = π·d_b·σ'_v·tanδ，σ'_v 取 L_p 中點之有效覆土應力（不計超載）。":"鑽孔灌漿式每公尺拉拔阻抗 = π·D_{DH}·q_u。")+"R_{po} = 拉拔率 × L_p，FS_{po} = R_{po} / T。",
-   "面版（FHWA GEC 7）：釘頭設計拉力 T_o = T·[0.6 + 0.2(S_{max} − 1)]，S_{max} = max(S_H, S_V)。撓曲 R_{FF} = C_F·(m_{neg} + m_{pos})·(8S_H/S_V)，並以水平向檢核取小值；鋼線網置中 d = h/2，m = a_s·f_y·(d − a/2)。穿孔剪力 V_F = 0.33√f'c·π·D'c·h，D'c = L_{BP} + h，C_P = 1.0。",
+   "面版（FHWA GEC 7）：釘頭設計拉力 T_o = T·[0.6 + 0.2(S_{max} − 1)]，S_{max} = max(S_H, S_V)。撓曲 R_{FF} = C_F·(m_{neg} + m_{pos})·(8S_H/S_V)，並以水平向檢核取小值；鋼線網置中 d = h/2，m = a_s·f_y·(d − a/2)。穿孔剪力 V_F = 0.33√f'_c·π·D'_c·h，D'_c = L_{BP} + h，C_P = 1.0。",
    "加勁體滑動：加勁體自牆趾至最下排土釘尾端，FS = [c'·B_L + (W + Q_D + P_A·sinβ − U)·tanφ'] / (P_A·cosβ + P_w)，P_A 以 Rankine 計算。",
    "整體穩定："+methodName(s.slopeMethod)+" 法圓弧搜尋，40 片切片。土釘可發揮力 T = min(後段拉拔 L_b·r / FS_{po}, R_t / FS_t, 面版抗力 / FS_F + 前段拉拔 L_a·r / FS_{po})"+(s.nailRes==="nominal"?"（本案採標稱值，不除 FS）":"")+"，除以 S_H 換算為每公尺寬，作用於滑動面交點、沿土釘方向；"+(s.nailMode==="active"?"主動模式（減少滑動力）。":"被動模式（土釘力除以 FS，計入力矩與法向力）。")+"出口限於牆趾或其前方開挖面，入口限於牆頂後方地表。圓心格網兩階段搜尋。",
    "施工階段：第 k 階開挖至第 k 排土釘下方 "+fmt(s.overdig,2)+" m（不超過 H），僅計入已施作之第 1～k−1 排土釘，水位採常時。"
@@ -557,7 +560,7 @@ function buildDocx(imgs){
   I.rows.forEach(function(r){var ok=r.FSff>=FS.fFlex&&r.FSfp>=FS.fPunch; fr2.push([r.i,fmt(r.Smax,2),fF(r.To),fF(r.fc.RFF),fmt(r.FSff,2),fF(r.fc.RFP),fmt(r.FSfp,2),ok?{t:"OK",color:"2C7A4B",b:true}:{t:"NG",color:"B4541A",b:true}]);});
   body.push(table([700,1200,1200,1300,1100,1300,1100,900],fr2,{sz:18}));
   var f0=I.rows[0].fc;
-  NOTE("m_v = "+fM(f0.mv)+" "+u.M+"、m_h = "+fM(f0.mh)+" "+u.M+"；D'c = "+fmt(f0.Dc,3)+" m；V_F = "+fF(f0.VF)+" "+u.F+"。需求：FS_{FF} ≥ "+fmt(FS.fFlex,2)+"、FS_{FP} ≥ "+fmt(FS.fPunch,2)+"。");
+  NOTE("m_v = "+fM(f0.mv)+" "+u.M+"、m_h = "+fM(f0.mh)+" "+u.M+"；D'_c = "+fmt(f0.Dc,3)+" m；V_F = "+fF(f0.VF)+" "+u.F+"。需求：FS_{FF} ≥ "+fmt(FS.fFlex,2)+"、FS_{FP} ≥ "+fmt(FS.fPunch,2)+"。");
 
   H1("五、外部穩定：加勁體滑動");
   var sr=[["工況","B_L m","W "+u.FL,"Q_D "+u.FL,"U "+u.FL,"P_A "+u.FL,"P_w "+u.FL,"FS","判定"]];
