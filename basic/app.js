@@ -250,6 +250,22 @@ function renderTension(){
     h+='<tr class="'+(ok?"":"ng")+'"><td>'+r.i+'</td><td>'+fmt(r.n.z,2)+'</td><td>'+fP(r.pz)+'</td><td>'+fmt(r.sv,2)+'</td><td>'+fFL(r.P)+'</td><td>'+fmt(r.n.sh,2)+'</td><td>'+fF(r.Th)+'</td><td>'+fF(r.T)+'</td><td class="l t">'+r.n.bar+'</td><td>'+fF(r.Rt)+'</td><td>'+fF(r.Ta)+'</td><td>'+fmt(r.FSt,2)+'</td><td>'+okCell(ok)+'</td></tr>';});
   $("tten").innerHTML=h+'</tbody>';
   var tot=I.rows.reduce(function(a,r){return a+r.P;},0);
+  var td="";
+  I.rows.forEach(function(r){
+    var gw=r.wcase==="S"?s.gwS:s.gwN;
+    td+='<div class="eqs"><b>第 '+r.i+' 排（z = '+fmt(r.n.z,2)+' m，'+r.n.bar+'，'+(r.wcase==="S"?"暴雨":"常時")+'水位控制）</b>\n'+
+      'K_a = '+fmt(I.Ka,4)+(s.beta?'，K_a·cosβ = '+fmt(I.kh,4):'')+'；水位深 '+(gw===null?'無':fmt(gw,2)+' m')+(s.drained?'（面版排水，不計水壓）':'')+'\n'+
+      '負擔範圍 '+fmt(r.top,2)+'～'+fmt(r.bot,2)+' m，S_V = '+fmt(r.bot,2)+' − '+fmt(r.top,2)+' = '+fmt(r.sv,2)+' m\n'+
+      'σ_h(z) = K_a'+(s.beta?'·cosβ':'')+'·(q + σ\'_v) + u = '+fmt(I.kh,4)+' × ('+fP(s.q)+' + '+fP(SN.sigV(r.n.z,s,gw))+') + '+fP(s.drained?0:SN.uAt(r.n.z,s,gw))+' = '+fP(r.pz)+' '+u.P+'\n'+
+      'σ_h(頂) = '+fP(r.ptop)+'，σ_h(底) = '+fP(r.pbot)+' '+u.P+'\n'+
+      (s.excelTrib?'P = σ_h(z) × S_V = '+fP(r.pz)+' × '+fmt(r.sv,2):'P = ∫σ_h dz（'+fmt(r.top,2)+'～'+fmt(r.bot,2)+' m，Simpson）')+' = '+fFL(r.P)+' '+u.FL+'\n'+
+      'T_h = P × S_H = '+fFL(r.P)+' × '+fmt(r.n.sh,2)+' = '+fF(r.Th)+' '+u.F+'\n'+
+      'T = T_h / cosψ = '+fF(r.Th)+' / cos'+fmt(r.n.ang,1)+'° = '+fF(r.T)+' '+u.F+'\n'+
+      'R_t = A_s × f_y = '+fmt(r.bar.As,2)+' cm² × '+fS(s.fy)+' '+u.S+' = '+fF(r.Rt)+' '+u.F+'\n'+
+      'T_a = R_t / FS = '+fF(r.Rt)+' / '+fmt(FS.tensile,2)+' = '+fF(r.Ta)+' '+u.F+'　'+(r.T<=r.Ta+1e-9?'≥':'<')+' T = '+fF(r.T)+'\n'+
+      'FS_t = R_t / T = '+fF(r.Rt)+' / '+fF(r.T)+' = '+fmt(r.FSt,2)+'　'+(r.FSt>=FS.tensile?'≥':'<')+' '+fmt(FS.tensile,2)+'　'+(r.FSt>=FS.tensile?'OK':'NG')+'</div>';
+  });
+  $("tendet").innerHTML=subH(td);
   $("ten-notes").innerHTML='<p>各排土壓合力加總 '+fFL(tot)+' '+u.FL+'；Rankine 總土壓（常時水位）'+fFL(I.Ptot)+' '+u.FL+(s.excelTrib?'（點值法不會相等）':'')+'。'+(I.cases.length>1?'各排取常時與暴雨水位之大值。':'')+'</p><p>T = T<sub>h</sub> / cosψ；判定 T ≤ T<sub>a</sub>，即 FS<sub>t</sub> = R<sub>t</sub>/T ≥ '+fmt(FS.tensile,2)+'。原 Excel 以 0.55 f<sub>y</sub>·cosψ 與 T<sub>h</sub> 比較，相當於 FS<sub>t</sub> = 1.82。</p>';
 }
 function renderPullout(){
@@ -262,16 +278,15 @@ function renderPullout(){
   var dd="";
   I.rows.forEach(function(r){
     var g=SN.nailGeom(s,r.n);
-    dd+='<div class="eqs"><b>第 '+r.i+' 排（z = '+fmt(r.n.z,2)+' m，'+r.n.bar+'，'+(r.wcase==="S"?"暴雨":"常時")+'水位控制）</b>\n'+
-      '負擔範圍 '+fmt(r.top,2)+'～'+fmt(r.bot,2)+' m，S_V = '+fmt(r.sv,2)+' m\n'+
-      'σ_h(頂) = '+fP(r.ptop)+'，σ_h(z) = '+fP(r.pz)+'，σ_h(底) = '+fP(r.pbot)+' '+u.P+'\n'+
-      (s.excelTrib?'P = σ_h(z) × S_V = '+fP(r.pz)+' × '+fmt(r.sv,2):'P = ∫σ_h dz（Simpson）')+' = '+fFL(r.P)+' '+u.FL+'\n'+
-      'T_h = P × S_H = '+fFL(r.P)+' × '+fmt(r.n.sh,2)+' = '+fF(r.Th)+' '+u.F+'；T = T_h / cos'+fmt(r.n.ang,0)+'° = '+fF(r.T)+' '+u.F+'\n'+
-      'R_t = '+fmt(r.bar.As,2)+' cm² × '+fS(s.fy)+' '+u.S+' = '+fF(r.Rt)+' '+u.F+'；FS_t = '+fF(r.Rt)+' / '+fF(r.T)+' = '+fmt(r.FSt,2)+'\n'+
-      '釘頭 ('+fmt(g.xh,2)+', '+fmt(g.yh,2)+')；破壞面交點 L_a = '+fmt(r.La,2)+' m，L_p = '+fmt(r.n.L,2)+' − '+fmt(r.La,2)+' = '+fmt(r.Lp,2)+' m\n'+
-      (drv?'σ\'_v(L_p 中點，深 '+fmt(r.zmid,2)+' m) = '+fP(r.sigmid)+' '+u.P+'；拉拔率 = π × '+fmt(r.bar.d,1)+'/1000 × '+fP(r.sigmid)+' × tan('+fmt(s.kdelta,3)+'×'+fmt(s.phi,1)+'°) = '+fFL(r.rate)+' '+u.FL+'\n'
-         :'拉拔率 = π × '+fmt(s.Ddh/1000,3)+' × '+fP(s.qu)+' = '+fFL(r.rate)+' '+u.FL+'\n')+
-      'R_po = '+fFL(r.rate)+' × '+fmt(r.Lp,2)+' = '+fF(r.Rpo)+' '+u.F+'；FS_po = '+fF(r.Rpo)+' / '+fF(r.T)+' = '+fmt(r.FSpo,2)+'</div>';
+    dd+='<div class="eqs"><b>第 '+r.i+' 排（z = '+fmt(r.n.z,2)+' m，L = '+fmt(r.n.L,2)+' m，ψ = '+fmt(r.n.ang,1)+'°）</b>\n'+
+      '需求軸力 T = '+fF(r.T)+' '+u.F+'（見 05）\n'+
+      '釘頭座標 (x, y) = ('+fmt(g.xh,2)+', '+fmt(g.yh,2)+') m；破壞面 y = x·tan'+fmt(I.theta,1)+'°\n'+
+      'L_a = (y_h − x_h·tanθ) / (sinψ + cosψ·tanθ) = '+fmt(r.La,2)+' m\n'+
+      'L_p = L − L_a = '+fmt(r.n.L,2)+' − '+fmt(r.La,2)+' = '+fmt(r.Lp,2)+' m\n'+
+      (drv?'σ\'_v(L_p 中點，深 '+fmt(r.zmid,2)+' m) = '+fP(r.sigmid)+' '+u.P+'\n拉拔率 = π·d_b·σ\'_v·tan(k·φ\') = π × '+fmt(r.bar.d/1000,4)+' × '+fP(r.sigmid)+' × tan('+fmt(s.kdelta,3)+' × '+fmt(s.phi,1)+'°) = '+fFL(r.rate)+' '+u.FL+'\n'
+         :'拉拔率 = π·D_DH·q_u = π × '+fmt(s.Ddh/1000,3)+' × '+fP(s.qu)+' = '+fFL(r.rate)+' '+u.FL+'\n')+
+      'R_po = 拉拔率 × L_p = '+fFL(r.rate)+' × '+fmt(r.Lp,2)+' = '+fF(r.Rpo)+' '+u.F+'\n'+
+      'FS_po = R_po / T = '+fF(r.Rpo)+' / '+fF(r.T)+' = '+fmt(r.FSpo,2)+'　'+(r.FSpo>=FS.pullout?'≥':'<')+' '+fmt(FS.pullout,2)+'　'+(r.FSpo>=FS.pullout?'OK':'NG')+'</div>';
   });
   $("intdet").innerHTML=subH(dd);
 }
