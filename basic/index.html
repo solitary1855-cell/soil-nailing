@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="土釘抗拉與拉拔檢核（可切換公噸制或 SI 制）：依 Rankine 主動土壓分配各排土釘需求拉力，檢核鋼筋抗拉與拉拔阻抗（完工階段），可儲存案件並匯出 Word 計算書。">
+<meta name="theme-color" content="#1d5f86">
+<title>土釘抗拉與拉拔檢核</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d5f86'/%3E%3Cpath d='M8 26V6' stroke='%23fff' stroke-width='2.4'/%3E%3Cpath d='M9 10l15 4M9 16l15 4M9 22l15 4' stroke='%23e2cf9c' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+
+/* Layout: same tool family as 土壤沉陷量計算器 — case bar, inputs beside verdict, cross-section with critical circle as the signature figure */
+:root{
+  --bg:#eef1ef; --surface:#fbfcfb; --surface-2:#e4e9e6; --ink:#1b2427; --muted:#5a676b; --line:#cdd5d1;
+  --accent:#1d5f86; --accent-soft:#d8e7f0; --stress:#a2561c;
+  --clay:#b49770; --clay-ink:#7d6443; --sand:#e2cf9c; --sand-ink:#a8904f; --hard:#a9b2ae; --hard-ink:#76807c;
+  --ok:#2c7a4b; --warn:#b4541a; --warn-soft:#f7e6d8; --input:#ffffff; --focus:#1d5f86; --shadow:0 6px 24px rgba(20,35,40,.14);
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-data:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  --r:6px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a1c; --surface:#1b2326; --surface-2:#232d31; --ink:#e3e9e7; --muted:#9aa7aa; --line:#33403f;
+    --accent:#6fb2dc; --accent-soft:#1f3442; --stress:#e3925a;
+    --clay:#7a6243; --clay-ink:#c4a77d; --sand:#806f43; --sand-ink:#d5bf86; --hard:#4d5755; --hard-ink:#9aa5a1;
+    --ok:#6cc08d; --warn:#ec9a62; --warn-soft:#3a2a1f; --input:#11171a; --focus:#6fb2dc; --shadow:0 6px 24px rgba(0,0,0,.45); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141a1c; --surface:#1b2326; --surface-2:#232d31; --ink:#e3e9e7; --muted:#9aa7aa; --line:#33403f;
+  --accent:#6fb2dc; --accent-soft:#1f3442; --stress:#e3925a;
+  --clay:#7a6243; --clay-ink:#c4a77d; --sand:#806f43; --sand-ink:#d5bf86; --hard:#4d5755; --hard-ink:#9aa5a1;
+  --ok:#6cc08d; --warn:#ec9a62; --warn-soft:#3a2a1f; --input:#11171a; --focus:#6fb2dc; --shadow:0 6px 24px rgba(0,0,0,.45); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+h1{font-family:var(--f-display);font-size:clamp(22px,4vw,30px);margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;font-size:13px}
+.unitsw{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px;gap:2px}
+.unitsw label{display:inline-flex;align-items:baseline;gap:6px;padding:5px 12px;border-radius:999px;cursor:pointer;font-size:13px;color:var(--muted);white-space:nowrap}
+.unitsw label small{font-family:var(--f-data);font-size:11px}
+.unitsw input{position:absolute;opacity:0;pointer-events:none}
+.unitsw label:has(input:checked){background:var(--accent);color:var(--surface)}
+.unitsw label:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}
+h2{font-size:15px;margin:0;letter-spacing:.04em}
+h2 .n{font-family:var(--f-data);color:var(--accent);margin-right:6px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+
+/* case bar */
+.casebar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.casebar .name{display:flex;align-items:center;gap:8px;flex:1 1 260px;min-width:0}
+.casebar .name label{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;white-space:nowrap}
+.casebar .name input{flex:1;min-width:0;font-family:var(--f-body);font-size:14px}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.dirty{border-color:var(--warn);color:var(--warn)}
+.chip.saved{border-color:var(--ok);color:var(--ok)}
+.menu{position:relative}
+.menu>summary{list-style:none;cursor:pointer;font-size:13px;border:1px solid var(--line);border-radius:4px;padding:6px 12px;background:var(--surface);white-space:nowrap}
+.menu>summary::-webkit-details-marker{display:none}
+.menu>summary::after{content:" ▾";color:var(--muted)}
+.menu>summary:hover{border-color:var(--accent);color:var(--accent)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:8px}
+.menu-pop.left{left:0;right:auto}
+.caselist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:300px;overflow:auto}
+.caselist li{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--line)}
+.caselist li.cur{background:var(--accent-soft)}
+.caselist .ci{flex:1;min-width:0}
+.caselist .ci b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.caselist .ci small{color:var(--muted);font-family:var(--f-data);font-size:11px}
+.empty{color:var(--muted);font-size:12.5px;padding:6px 2px}
+.toast{font-size:12.5px;color:var(--ok);min-height:1em}
+.toast.err{color:var(--warn)}
+
+.grid-top{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid-top{grid-template-columns:minmax(0,1fr)}}
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}
+@media (max-width:560px){.groups{grid-template-columns:minmax(0,1fr)}}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend,.legend-t{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:4px;padding:0}
+.f{display:grid;grid-template-columns:minmax(0,1fr) 112px;align-items:center;gap:8px}
+.f label{font-size:13px;min-width:0}
+.f label small{display:block;color:var(--muted);font-size:11.5px;line-height:1.35}
+.inp{position:relative;display:flex;align-items:center}
+.inp input,.inp select{width:100%}
+.inp .u{position:absolute;right:8px;font-family:var(--f-data);font-size:11px;color:var(--muted);pointer-events:none}
+.inp input{padding-right:40px}
+input,select{font:inherit;font-family:var(--f-data);font-size:13px;color:var(--ink);background:var(--input);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0;font-variant-numeric:tabular-nums}
+select{font-family:var(--f-body)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+input:disabled{background:var(--surface-2);color:transparent;border-style:dashed}
+input.bad{border-color:var(--warn);background:var(--warn-soft)}
+.switch{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+button{font:inherit;font-size:13px;border-radius:4px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button.primary:hover{filter:brightness(1.08);color:var(--surface)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 6px}
+button.ghost:hover{color:var(--accent)}
+button.armed{border-color:var(--warn);color:var(--warn)}
+button:disabled{opacity:.5;cursor:default}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* summary */
+.verdict{display:flex;flex-direction:column;gap:14px}
+.bigpair{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:12px;align-items:stretch}
+@media (max-width:420px){.bigpair{grid-template-columns:minmax(0,1fr)}}
+.bigbox{border:1px solid var(--line);border-radius:4px;padding:10px 12px;min-width:0}
+.bigbox.first{border-color:var(--accent);background:var(--accent-soft)}
+.big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.big .v{font-family:var(--f-data);font-size:clamp(34px,4.6vw,46px);font-weight:500;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.big .u{font-family:var(--f-data);color:var(--muted);font-size:15px}
+.big.sm .v{font-size:clamp(20.4px,2.76vw,27.6px)}
+.big.sm .u{font-size:12px}
+.bigbox.second{display:flex;flex-direction:column;justify-content:center}
+.big-l{font-size:12px;color:var(--muted);letter-spacing:.04em;margin-bottom:4px}
+.calc{display:flex;flex-direction:column;gap:8px;font-size:12.5px;min-width:0}
+.calc h3{font-size:12.5px;margin:4px 0 0;color:var(--ink)}
+.calc details.cp{border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.calc details.cp>summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--accent)}
+.calc details.cp[open]>summary{margin-bottom:8px}
+.calc .cpb{display:flex;flex-direction:column;gap:8px}
+.calc .eqs{background:var(--surface-2);border-radius:4px;padding:8px 10px;font-family:var(--f-data);font-size:12px;color:var(--ink);display:flex;flex-direction:column;gap:8px;overflow-x:auto;font-variant-numeric:tabular-nums}
+.calc .ln{display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;line-height:1.5}
+.calc .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.35}
+.calc .fr>span{padding:0 3px;white-space:nowrap}
+.calc .fr>span:first-child{border-bottom:1px solid currentColor}
+.calc .pa{font-size:1.9em;line-height:1;font-weight:300;margin:0 -1px}
+.calc sub,.calc sup{font-size:.75em}
+sub{line-height:0}
+.calc .tk{display:inline;white-space:normal}
+.calc .tk .fr{margin:0 2px}
+.calc .lg{display:inline-flex;align-items:center;white-space:nowrap;vertical-align:middle}
+.calc .lay-h{font-weight:500}
+.calc .lay-h small{color:var(--muted);font-weight:400;margin-left:6px}
+.calc details>summary{cursor:pointer;color:var(--accent);font-size:12.5px}
+.calc details[open]>summary{margin-bottom:8px}
+.calc .lays{display:flex;flex-direction:column;gap:8px}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:13px;border-top:1px solid var(--line);padding-top:10px;margin:0}
+.kv dt{color:var(--muted);margin:0}
+.kv dd{margin:0;font-family:var(--f-data);text-align:right;font-variant-numeric:tabular-nums}
+.kv dd.em{color:var(--accent);font-weight:500}
+.alerts{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.alerts li{font-size:13px;padding:7px 10px;border-radius:4px;border-left:3px solid var(--warn);background:var(--warn-soft)}
+.alerts li.ok{border-left-color:var(--ok);background:var(--surface-2)}
+
+footer.notes{color:var(--muted);font-size:12.5px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 24px;border-top:1px solid var(--line);padding-top:16px}
+footer.notes h3{font-size:12.5px;color:var(--ink);margin:0 0 4px}
+footer.notes p{margin:0 0 6px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+.f{grid-template-columns:minmax(0,1fr) 140px}
+.f.w{grid-template-columns:minmax(0,1fr) 170px}
+.inp select{padding-right:8px}
+.inp:has(.u[data-u="S"]) input,.inp:has(.u[data-u="G"]) input,.inp:has(.u[data-u="P"]) input,.inp:has(.u.wide) input{padding-right:62px}
+.sel-only select{width:100%}
+.fsgrid{display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:4px 8px;font-size:12.5px;align-items:center}
+.fsgrid .src{grid-column:1/-1;color:var(--muted);font-size:11px;margin:-2px 0 4px}
+.fsgrid input{width:100%;text-align:right;padding:3px 6px}
+.fsgrid output{font-family:var(--f-data);text-align:right}
+.hint{color:var(--muted);font-size:12.5px;margin:0;max-width:78ch}
+.grid-top{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid-top{grid-template-columns:minmax(0,1fr)}}
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+@media (max-width:560px){.groups{grid-template-columns:minmax(0,1fr)}}
+.span2{grid-column:1/-1}
+.tbl-scroll{overflow-x:auto;margin-inline:-4px;padding-inline:4px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:11.5px;font-weight:500;color:var(--muted);text-align:right;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle;font-family:var(--f-data);font-size:12.5px;text-align:right;white-space:nowrap}
+th.l,td.l{text-align:left}
+td.t{font-family:var(--f-body)}
+tr.ng td{background:var(--warn-soft)}
+.ok{color:var(--ok);font-weight:500}.ng{color:var(--warn);font-weight:700}
+.nails td{padding:3px 4px}
+.nails input,.nails select{width:84px;text-align:right}
+.nails select{text-align:left}
+.nails td.idx{color:var(--muted);text-align:center;width:28px}
+.tblfoot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:10px;align-items:center}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.checks li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.checks li b{font-family:var(--f-data);font-weight:500;font-variant-numeric:tabular-nums}
+.checks li small{color:var(--muted);font-size:11.5px;display:block}
+.checks .tag{font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.bigbox.ngbox{border-color:var(--warn);background:var(--warn-soft)}
+.prog{font-size:12px;color:var(--muted);font-family:var(--f-data)}
+.prog.run::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+/* section figure */
+.segs{display:flex;flex-wrap:wrap;gap:4px}
+.segs button{font-size:12px;padding:4px 10px;border-radius:999px}
+.segs button.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.segs button .fsv{font-family:var(--f-data);margin-left:6px;opacity:.85}
+.segs button.bad:not(.on){border-color:var(--warn);color:var(--warn)}
+#fig{margin-top:12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);overflow:hidden}
+#fig svg{display:block;width:100%;height:auto}
+#fig text{font-family:var(--f-data);font-size:11px}
+#fig .lbl{font-family:var(--f-body);fill:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+.figmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px;margin-top:10px}
+.figmeta div{border:1px solid var(--line);border-radius:4px;padding:6px 10px;min-width:0}
+.figmeta b{display:block;font-family:var(--f-data);font-weight:500;font-size:16px;font-variant-numeric:tabular-nums}
+.figmeta span{font-size:11.5px;color:var(--muted)}
+.figmeta div.first{border-color:var(--accent);background:var(--accent-soft)}
+.figmeta div.first.ngbox{border-color:var(--warn);background:var(--warn-soft)}
+details.more{margin-top:12px;border-top:1px dashed var(--line);padding-top:8px}
+details.more>summary{cursor:pointer;color:var(--accent);font-size:13px}
+details.more[open]>summary{margin-bottom:8px}
+.eqs{background:var(--surface-2);border-radius:4px;padding:8px 10px;font-family:var(--f-data);font-size:12px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;font-variant-numeric:tabular-nums}
+.eqs b{font-family:var(--f-body);font-weight:700}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+h3.sub3{font-size:13px;margin:14px 0 6px}
+.res-notes{margin-top:8px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.res-notes p{margin:0}
+.bond-pick{width:100%}
+@media print{.casebar,.btns,#btn-example{display:none}}
+
+.backlink{font-size:12.5px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.backlink:hover{text-decoration:underline}
+.hd-right{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>土釘抗拉與拉拔檢核</h1>
+      <p class="sub">Rankine 土壓分配 · 鋼筋抗拉 · 拉拔阻抗（完工階段，依原 Excel 做法）</p>
+    </div>
+    <div class="hd-right">
+      <a class="backlink" href="../">完整版（含面版、滑動、整體穩定）→</a>
+      <div class="unitsw" role="radiogroup" aria-label="單位制">
+        <label><input type="radio" name="unit" value="t"> 公噸制 <small>t · t/m²</small></label>
+        <label><input type="radio" name="unit" value="kN"> SI 制 <small>kN · kPa</small></label>
+      </div>
+    </div>
+  </header>
+
+  <div class="casebar" role="group" aria-label="案件">
+    <div class="name">
+      <label for="casename">案件名稱</label>
+      <input id="casename" placeholder="例：○○路邊坡土釘擋土工程" autocomplete="off">
+      <span class="chip" id="savestate">尚未儲存</span>
+    </div>
+    <div class="btns">
+      <button type="button" class="primary" id="btn-save">儲存</button>
+      <button type="button" id="btn-saveas">另存新案件</button>
+      <details class="menu" id="menu-open">
+        <summary>開啟案件</summary>
+        <div class="menu-pop">
+          <ul class="caselist" id="caselist"></ul>
+          <p class="hint">案件儲存在這台裝置的瀏覽器中。換電腦或清除瀏覽資料前，請先匯出備份檔。</p>
+        </div>
+      </details>
+      <details class="menu" id="menu-file">
+        <summary>備份檔</summary>
+        <div class="menu-pop">
+          <button type="button" id="btn-exjson">匯出目前案件備份檔（.json）</button>
+          <button type="button" id="btn-exall">匯出全部案件備份檔（.json）</button>
+          <button type="button" id="btn-imjson">匯入備份檔…</button>
+          <input type="file" id="file-json" accept=".json,application/json" hidden>
+        </div>
+      </details>
+      <button type="button" id="btn-word">匯出 Word 計算書</button>
+    </div>
+    <span class="toast" id="casetoast" role="status"></span>
+  </div>
+
+  <div class="grid-top">
+    <section class="panel" aria-labelledby="h-in">
+      <div class="panel-head"><h2 id="h-in"><span class="n">01</span>設計條件</h2>
+        <div class="btns"><button id="btn-example" type="button">載入範例</button></div>
+      </div>
+      <div class="groups">
+        <fieldset>
+          <legend>幾何與載重</legend>
+          <div class="f"><label for="H">開挖高度 H</label><div class="inp"><input id="H" inputmode="decimal"><span class="u">m</span></div></div>
+          <div class="f"><label for="face">牆面傾角<small>與水平夾角，90° 為垂直</small></label><div class="inp"><input id="face" inputmode="decimal"><span class="u">°</span></div></div>
+          <div class="f"><label for="beta">牆頂背坡角 β</label><div class="inp"><input id="beta" inputmode="decimal"><span class="u">°</span></div></div>
+          <div class="f"><label for="q">牆頂均布超載 q</label><div class="inp"><input id="q" inputmode="decimal"><span class="u" data-u="P"></span></div></div>
+        </fieldset>
+        <fieldset>
+          <legend>土壤參數</legend>
+          <div class="f"><label for="gt">單位重 γ<sub>t</sub><small>水位以上</small></label><div class="inp"><input id="gt" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <div class="f"><label for="gs">飽和單位重 γ<sub>sat</sub><small>水位以下</small></label><div class="inp"><input id="gs" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <div class="f"><label for="phi">有效摩擦角 φ'</label><div class="inp"><input id="phi" inputmode="decimal"><span class="u">°</span></div></div>
+        </fieldset>
+        <fieldset>
+          <legend>地下水</legend>
+          <div class="f"><label for="gwN">常時水位深度<small>牆頂地表下，空白＝不考慮</small></label><div class="inp"><input id="gwN" inputmode="decimal" placeholder="無"><span class="u">m</span></div></div>
+          <div class="f"><label for="gwS">暴雨（高水位）深度<small>空白＝不檢核暴雨工況</small></label><div class="inp"><input id="gwS" inputmode="decimal" placeholder="無"><span class="u">m</span></div></div>
+          <div class="f"><label for="gw">水單位重 γ<sub>w</sub></label><div class="inp"><input id="gw" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
+          <label class="switch"><input type="checkbox" id="drained"> 面版排水良好，需求拉力不計水壓</label>
+        </fieldset>
+        <fieldset>
+          <legend>施工方式與拉拔</legend>
+          <div class="f w"><label for="method">土釘型式</label><div class="inp sel-only"><select id="method"><option value="grout">鑽孔灌漿式</option><option value="driven">打入式</option></select></div></div>
+          <div class="f" data-m="grout"><label for="Ddh">鑽孔直徑 D<sub>DH</sub></label><div class="inp"><input id="Ddh" inputmode="decimal"><span class="u">mm</span></div></div>
+          <div class="f" data-m="grout"><label for="qu">極限握裹強度 q<sub>u</sub><small>應以拉拔試驗驗證</small></label><div class="inp"><input id="qu" inputmode="decimal"><span class="u" data-u="P"></span></div></div>
+          <div data-m="grout"><select id="bondpick" class="bond-pick" aria-label="GEC 7 握裹強度參考值"></select></div>
+          <div class="f" data-m="driven"><label for="kdelta">介面摩擦折減 k<small>tan δ = tan(k·φ')，原 Excel 取 2/3</small></label><div class="inp"><input id="kdelta" inputmode="decimal"></div></div>
+          <p class="hint" data-m="driven">打入式以鋼筋周長 × σ'<sub>v</sub> × tan δ 計算每公尺拉拔阻抗（原 Excel 方法，周長單位已更正）。</p>
+        </fieldset>
+        <fieldset>
+          <legend>鋼筋與土壓</legend>
+          <div class="f"><label for="fy">土釘鋼筋 f<sub>y</sub></label><div class="inp"><input id="fy" inputmode="decimal"><span class="u" data-u="S"></span></div></div>
+          <label class="switch"><input type="checkbox" id="excelTrib"> 土壓分配採原 Excel 點值法</label>
+          <p class="hint">點值法：各排土壓取土釘深度處之 σ<sub>h</sub> 乘負擔高度。預設為面積積分，各排加總等於 Rankine 總土壓。</p>
+        </fieldset>
+        <fieldset>
+          <legend>規範與安全係數</legend>
+          <div class="f w"><label for="code">安全係數依據</label><div class="inp sel-only"><select id="code"><option value="bldg">建築物基礎構造設計規範（112）</option><option value="swc">水土保持技術規範</option><option value="gec7">FHWA GEC 7（2015）</option><option value="custom">自訂</option></select></div></div>
+          <div class="fsgrid" id="fsgrid"></div>
+        </fieldset>
+      </div>
+    </section>
+
+    <section class="panel verdict" aria-labelledby="h-sum">
+      <div class="panel-head"><h2 id="h-sum"><span class="n">02</span>檢核結果</h2></div>
+      <div class="bigpair">
+        <div class="bigbox first" id="bb1"><div class="big-l">拉拔阻抗 FS（最小）</div><div class="big"><span class="v" id="big-fs">—</span><span class="u" id="big-req"></span></div></div>
+        <div class="bigbox second" id="bb2"><div class="big-l">土釘排數</div><div class="big sm"><span class="v" id="big-ok">—</span><span class="u">排 OK</span></div></div>
+      </div>
+      <ul class="checks" id="checks"></ul>
+      <ul class="alerts" id="alerts"></ul>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="h-nails">
+    <div class="panel-head"><h2 id="h-nails"><span class="n">03</span>土釘配置</h2>
+      <div class="btns"><button type="button" id="btn-addnail">＋ 新增一排</button></div>
+    </div>
+    <div class="tbl-scroll">
+      <table class="nails" id="nails"><thead><tr><th>#</th><th>深度 z (m)</th><th>水平間距 S<sub>H</sub> (m)</th><th>長度 L (m)</th><th>傾角 ψ (°)</th><th class="l">鋼筋</th><th>A<sub>s</sub> (cm²)</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+    <p class="hint" style="margin-top:8px">深度由牆頂起算，依深度自動排序。垂直負擔高度 S<sub>V</sub> 取上下兩排的中點；第一排從牆頂起算，最後一排算到牆底。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-fig">
+    <div class="panel-head"><h2 id="h-fig"><span class="n">04</span>斷面、土壓分佈與有效錨定長度</h2><span class="prog" id="ka-note"></span></div>
+    <div id="fig"></div>
+    <div class="legend">
+      <span><i style="border-color:var(--accent);border-top-width:3px"></i>有效錨定長度 L<sub>p</sub></span>
+      <span><i style="border-color:var(--ink)"></i>破壞面前段 L<sub>a</sub></span>
+      <span><i style="border-color:var(--stress);border-top-style:dashed"></i>Rankine 破壞面</span>
+      <span><i style="border-color:var(--warn)"></i>主動土壓 σ<sub>h</sub></span>
+      <span><i style="border-color:var(--accent);border-top-style:dashed"></i>地下水位</span>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ten">
+    <div class="panel-head"><h2 id="h-ten"><span class="n">05</span>需求拉力與鋼筋抗拉</h2></div>
+    <div class="tbl-scroll"><table id="tten"></table></div>
+    <div class="res-notes" id="ten-notes"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-po">
+    <div class="panel-head"><h2 id="h-po"><span class="n">06</span>拉拔阻抗</h2></div>
+    <div class="tbl-scroll"><table id="tpo"></table></div>
+    <div class="res-notes" id="po-notes"></div>
+    <details class="more"><summary>計算過程（逐支）</summary><div id="intdet"></div></details>
+  </section>
+
+  <footer class="notes">
+    <div><h3>需求拉力</h3>
+      <p>Rankine 主動土壓 σ<sub>h</sub> = K<sub>a</sub>·cosβ·(q + σ'<sub>v</sub>) + u。各排負擔高度取上下兩排之中點，土壓合力 P 乘水平間距 S<sub>H</sub> 為水平拉力 T<sub>h</sub>，再除以 cosψ 換算為沿土釘軸力 T。有暴雨水位時取兩者之大值。</p>
+    </div>
+    <div><h3>鋼筋抗拉與拉拔</h3>
+      <p>R<sub>t</sub> = A<sub>s</sub>·f<sub>y</sub>，FS<sub>t</sub> = R<sub>t</sub>/T。原 Excel 容許拉力 0.55 f<sub>y</sub> 相當於 FS<sub>t</sub> = 1.82。</p>
+      <p>有效錨定長度 L<sub>p</sub> 取 Rankine 破壞面（45° + φ'/2，通過牆趾）以外之土釘長度。鑽孔灌漿式 R<sub>po</sub> = π·D<sub>DH</sub>·q<sub>u</sub>·L<sub>p</sub>；打入式 R<sub>po</sub> = π·d<sub>b</sub>·σ'<sub>v</sub>·tanδ·L<sub>p</sub>（σ'<sub>v</sub> 取 L<sub>p</sub> 中點，不計超載）。</p>
+    </div>
+    <div><h3>適用範圍</h3>
+      <p>本頁只檢核完工階段的鋼筋抗拉與拉拔阻抗。面版、加勁體滑動、整體穩定與施工階段，請使用<a class="backlink" href="../">完整版</a>。</p>
+      <p>單一均質土層、水平地下水位、無地震力。供初步設計與自我檢核使用，q<sub>u</sub> 應以現場拉拔試驗驗證。</p>
+    </div>
+  </footer>
+</div>
+<script src="../calc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
