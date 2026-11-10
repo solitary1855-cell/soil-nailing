@@ -236,6 +236,12 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
 .pair34 .nails th{white-space:normal;min-width:56px}
 .pair34 .nails button.ghost{padding:4px 2px}
 .pair34 .legend{gap:4px 12px}
+.colstack{display:flex;flex-direction:column;gap:6px;min-width:0}
+.bondref{margin-top:4px}
+.gecfig{margin:0 0 10px}
+.gecfig a{display:block;background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px}
+.gecfig img{display:block;width:100%;height:auto}
+.gecfig figcaption{font-size:11.5px;color:var(--muted);margin-top:3px}
 @media print{.casebar,.btns,#btn-example{display:none}}
 </style>
 </head>
@@ -312,6 +318,7 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
           <div class="f"><label for="gw">水單位重 γ<sub>w</sub></label><div class="inp"><input id="gw" data-k="gw" inputmode="decimal"><span class="u" data-u="G"></span></div></div>
           <label class="switch"><input type="checkbox" id="drained"> 面版排水良好，土釘需求拉力不計水壓</label>
         </fieldset>
+        <div class="colstack">
         <fieldset>
           <legend>施工方式與拉拔</legend>
           <div class="f w"><label for="method">土釘型式</label><div class="inp sel-only"><select id="method"><option value="grout">鑽孔灌漿式</option><option value="driven">打入式</option></select></div></div>
@@ -321,6 +328,11 @@ h3.sub3{font-size:13px;margin:14px 0 6px}
           <div class="f" data-m="driven"><label for="kdelta">介面摩擦折減 k<small>tan δ = tan(k·φ')，原 Excel 取 2/3</small></label><div class="inp"><input id="kdelta" data-k="kdelta" inputmode="decimal"></div></div>
           <p class="hint" data-m="driven">打入式以鋼筋周長 × σ'<sub>v</sub> × tan δ 計算每公尺拉拔阻抗（原 Excel 方法，周長單位已更正）。</p>
         </fieldset>
+          <details class="more bondref" data-m="grout">
+            <summary>FHWA GEC No.7 表 4.4、表 4.5：握裹強度參考值</summary>
+            <div id="bondref"></div>
+          </details>
+        </div>
         <fieldset>
           <legend>鋼筋與面版</legend>
           <div class="f"><label for="fy">土釘鋼筋 f<sub>y</sub></label><div class="inp"><input id="fy" data-k="fy" inputmode="decimal"><span class="u" data-u="S"></span></div></div>

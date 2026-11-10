@@ -152,12 +152,33 @@ Object.keys(FIELDS).forEach(function(k){
 SELECTS.forEach(function(k){$(k).addEventListener("change",function(e){state[k]=e.target.value; if(k==="method")showMethod(); if(k==="code")renderFSGrid(); run();});});
 CHECKS.forEach(function(k){$(k).addEventListener("change",function(e){state[k]=e.target.checked; run();});});
 function showMethod(){Array.prototype.forEach.call(document.querySelectorAll("[data-m]"),function(el){el.hidden=el.dataset.m!==state.method;});}
+/* GEC 7（FHWA-NHI-14-007, 2015）表 4.4a、4.4b、4.5，psi → kPa（1 psi = 6.895 kPa） */
+var BONDT=[
+  {id:"4.4a",title:"表 4.4a　粗粒土之握裹強度估計值",rows:SN.BOND.slice(0,11).map(function(b){return {m:b.m,s:b.s,lo:b.lo,hi:b.hi};})},
+  {id:"4.4b",title:"表 4.4b　細粒土之握裹強度估計值",rows:SN.BOND.slice(11).map(function(b){return {m:b.m,s:b.s,lo:b.lo,hi:b.hi};})},
+  {id:"4.5",title:"表 4.5　岩盤之握裹強度估計值（旋轉鑽孔）",rows:[["泥灰岩／石灰岩",44,58],["千枚岩",15,44],["白堊",73,87],["軟白雲岩",58,87],["裂隙白雲岩",87,145],["風化砂岩",29,44],["風化頁岩",15,22],["風化片岩",15,25],["玄武岩",73,87],["板岩／硬頁岩",44,58]].map(function(r){return {m:"旋轉鑽孔",s:r[0],lo:Math.round(r[1]*6.895),hi:Math.round(r[2]*6.895),plo:r[1],phi:r[2]};})}
+];
+/* SN.BOND 的英文原表順序：4.4a 為前 12 列（含粉土質砂回填等螺旋鑽 3 列），4.4b 為後 7 列 */
+(function(){var A=SN.BOND, aIdx=[0,1,2,3,4,6,7,8,9,11,12,13], bIdx=[5,10,14,15,16,17,18];
+  function mk(i){var b=A[i]; return {m:b.m,s:b.s,lo:b.lo,hi:b.hi,plo:Math.round(b.lo/6.895),phi:Math.round(b.hi/6.895)};}
+  BONDT[0].rows=aIdx.map(mk); BONDT[1].rows=bIdx.map(mk);})();
+var BONDALL=[]; BONDT.forEach(function(t){t.rows.forEach(function(r){r.tab=t.id; BONDALL.push(r);});});
 function fillBond(){
-  var sel=$("bondpick"), u=U(); sel.innerHTML='<option value="">GEC 7 表 4.4 參考值（帶入下限）…</option>'+SN.BOND.map(function(b,i){
-    return '<option value="'+i+'">'+esc(b.m+"・"+b.s+"："+fmt(cF(b.lo),state.unit==="t"?1:0)+"～"+fmt(cF(b.hi),state.unit==="t"?1:0)+" "+u.P)+'</option>';}).join("");
+  var u=U(), d=state.unit==="t"?1:0;
+  $("bondpick").innerHTML='<option value="">GEC 7 表 4.4／4.5 參考值（帶入下限）…</option>'+BONDT.map(function(t){
+    return '<optgroup label="'+esc(t.title)+'">'+t.rows.map(function(r){var i=BONDALL.indexOf(r);
+      return '<option value="'+i+'">'+esc(r.m+"・"+r.s+"："+fmt(cF(r.lo),d)+"～"+fmt(cF(r.hi),d)+" "+u.P)+'</option>';}).join("")+'</optgroup>';}).join("");
+  renderBondRef();
 }
+function renderBondRef(){
+  var figs=[["4-4a","Table 4.4a：粗粒土（Coarse-Grained Soils）"],["4-4b","Table 4.4b：細粒土（Fine-Grained Soils）"],["4-5","Table 4.5：岩盤（Rock，Rotary Drilled）"]];
+  $("bondref").innerHTML=figs.map(function(f){var src="basic/img/gec7_table"+f[0]+".png";
+    return '<figure class="gecfig"><a href="'+src+'" target="_blank" rel="noopener" title="開啟原尺寸"><img src="'+src+'" alt="FHWA GEC No.7 '+esc(f[1])+'" loading="lazy"></a><figcaption>'+esc(f[1])+'</figcaption></figure>';}).join("")+
+    '<p class="hint">擷取自 FHWA GEC No.7（FHWA-NHI-14-007, 2015）第 84～85 頁。原表單位為 psi，1 psi = 6.895 kPa = 0.703 t/m²。點圖可開啟原尺寸；要帶入數值請用上方下拉選單（帶入下限值）。</p>';
+}
+function useBond(i){var b=BONDALL[+i]; if(!b)return; state.qu=state.unit==="t"?Math.round(b.lo/GACC*100)/100:b.lo; $("qu").value=state.qu; $("qu").classList.remove("bad"); run(); caseToast("已帶入表 "+b.tab+"「"+b.m+"・"+b.s+"」下限值。實際設計請以拉拔試驗驗證。");}
+$("bondpick").addEventListener("change",function(e){var i=e.target.value; if(i==="")return; useBond(i);});
 function syncBondPick(){$("bondpick").value="";}
-$("bondpick").addEventListener("change",function(e){var i=e.target.value; if(i==="")return; var b=SN.BOND[+i]; state.qu=state.unit==="t"?Math.round(b.lo/GACC*100)/100:b.lo; $("qu").value=state.qu; $("qu").classList.remove("bad"); run(); caseToast("已帶入 "+b.m+"・"+b.s+" 下限值。實際設計請以拉拔試驗驗證。");});
 var armT=null;
 $("btn-example").addEventListener("click",function(e){
   var b=e.currentTarget;
