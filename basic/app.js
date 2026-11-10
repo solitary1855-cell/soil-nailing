@@ -168,18 +168,13 @@ function fillBond(){
   renderBondRef();
 }
 function renderBondRef(){
-  var u=U(), d=state.unit==="t"?1:0;
-  $("bondref").innerHTML='<div class="bt">'+BONDT.map(function(t){
-    var rock=t.id==="4.5";
-    return '<div><h3 class="sub3">'+esc(t.title)+'</h3><div class="tbl-scroll"><table><thead><tr>'+(rock?'':'<th class="l">鑽孔方式</th>')+'<th class="l">'+(rock?'岩性':'土壤種類')+'</th><th>q<sub>u</sub><br>psi</th><th>q<sub>u</sub><br>'+u.P+'</th><th></th></tr></thead><tbody>'+
-      t.rows.map(function(r){var i=BONDALL.indexOf(r);
-        return '<tr>'+(rock?'':'<td class="l t">'+esc(r.m)+'</td>')+'<td class="l t">'+esc(r.s)+'</td><td>'+r.plo+'～'+r.phi+'</td><td>'+fmt(cF(r.lo),d)+'～'+fmt(cF(r.hi),d)+'</td><td><button type="button" class="ghost" data-bond="'+i+'">帶入下限</button></td></tr>';}).join("")+
-      '</tbody></table></div></div>';}).join("")+'</div>'+
-    '<p class="hint" style="margin-top:8px">資料來源：FHWA GEC No.7（FHWA-NHI-14-007, 2015）表 4.4a、4.4b、4.5，原表修改自 Elias and Juran（1991）。原表單位為 psi，換算 1 psi = 6.895 kPa。表 4.4a 中「打入套管」為鑽孔成孔方式，低／高覆土以有效覆土壓力小於／大於 1.5 tsf（約 144 kPa）區分。表列為估計值，設計值應以現場拉拔試驗驗證。</p>';
+  var figs=[["4-4a","Table 4.4a：粗粒土（Coarse-Grained Soils）"],["4-4b","Table 4.4b：細粒土（Fine-Grained Soils）"],["4-5","Table 4.5：岩盤（Rock，Rotary Drilled）"]];
+  $("bondref").innerHTML=figs.map(function(f){var src="img/gec7_table"+f[0]+".png";
+    return '<figure class="gecfig"><a href="'+src+'" target="_blank" rel="noopener" title="開啟原尺寸"><img src="'+src+'" alt="FHWA GEC No.7 '+esc(f[1])+'" loading="lazy"></a><figcaption>'+esc(f[1])+'</figcaption></figure>';}).join("")+
+    '<p class="hint">擷取自 FHWA GEC No.7（FHWA-NHI-14-007, 2015）第 84～85 頁。原表單位為 psi，1 psi = 6.895 kPa = 0.703 t/m²。點圖可開啟原尺寸；要帶入數值請用上方下拉選單（帶入下限值）。</p>';
 }
 function useBond(i){var b=BONDALL[+i]; if(!b)return; state.qu=state.unit==="t"?Math.round(b.lo/GACC*100)/100:b.lo; $("qu").value=state.qu; $("qu").classList.remove("bad"); run(); caseToast("已帶入表 "+b.tab+"「"+b.m+"・"+b.s+"」下限值。實際設計請以拉拔試驗驗證。");}
 $("bondpick").addEventListener("change",function(e){var i=e.target.value; if(i==="")return; useBond(i);});
-document.addEventListener("click",function(e){var b=e.target.closest("[data-bond]"); if(!b)return; useBond(b.dataset.bond); $("bondpick").value="";});
 var armT=null;
 $("btn-example").addEventListener("click",function(e){
   var b=e.currentTarget;
